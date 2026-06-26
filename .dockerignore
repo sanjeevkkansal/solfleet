@@ -1,0 +1,12 @@
+.git/
+.venv/
+dist/
+*.egg-info/
+__pycache__/
+.pytest_cache/
+.github/
+tests/
+fleet.yaml
+*.sqlite
+*.local.md
+.DS_Store
