@@ -8,3 +8,4 @@ fleet.yaml
 *.sqlite
 *.local.md
 .DS_Store
+writeups/
