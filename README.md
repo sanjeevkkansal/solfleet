@@ -64,25 +64,25 @@ sequenceDiagram
   participant B as build host
   participant N as node
   participant R as reference RPC
-  Op->>SF: upgrade <node> <version> (confirm)
-  SF->>SF: gate: policy + preflight (else stop)
+  Op->>SF: upgrade node to version (confirm)
+  SF->>SF: gate, policy + preflight (else stop)
   SF->>B: build agave + geyser (or reuse cache)
   B-->>SF: artifact set + sha256
-  SF->>N: scp artifacts as <dest>.solfleet-new
-  SF->>N: sha256 on node == builder? (else abort)
+  SF->>N: scp artifacts as dest.solfleet-new
+  SF->>N: sha256 on node matches builder (else abort)
   alt RPC node
     SF->>N: systemctl stop
     SF->>N: atomic swap (binary + geyser + marker)
     SF->>N: systemctl start
   else voting validator
     SF->>N: atomic swap (binary + geyser + marker)
-    SF->>N: agave-validator exit (leader-aware); systemd relaunches
+    SF->>N: agave-validator exit (leader-aware), systemd relaunches
   end
-  loop until healthy and lag <= 2
+  loop until healthy and caught up
     SF->>R: getSlot
     SF->>N: getHealth / getSlot
   end
-  SF->>SF: verify reported version; write audit entry
+  SF->>SF: verify reported version, write audit entry
 ```
 
 ### How failover runs
@@ -96,7 +96,7 @@ sequenceDiagram
   loop every interval
     SF->>N: getHealth / getSlot
     SF->>R: getSlot (cluster head)
-    SF->>SF: per member: unhealthy? lag > limit? delinquent?
+    SF->>SF: per member: unhealthy, lag over limit, or delinquent
     alt every member failing
       SF->>SF: keep current records (never empty the pool)
     else at least one healthy
