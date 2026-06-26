@@ -1,0 +1,83 @@
+# Example fleet config. Copy to fleet.yaml and edit.
+# solfleet looks for ./fleet.yaml, or $SOLFLEET_CONFIG, or --config.
+clusters:
+  devnet:
+    reference_rpc: https://api.devnet.solana.com
+    nodes:
+      - name: dev-rpc-1
+        role: rpc
+        host: 203.0.113.10
+        rpc_url: http://203.0.113.10:8899
+        ssh: { user: sol, port: 22 }
+        service:
+          geyser_lib: /usr/local/lib/libyellowstone_grpc_geyser.so
+
+      - name: dev-rpc-2
+        role: rpc
+        host: 203.0.113.11
+        rpc_url: http://203.0.113.11:8899
+        ssh: { user: sol, port: 22 }
+
+  mainnet:
+    reference_rpc: https://api.mainnet-beta.solana.com
+    # agave v3+ ships no prebuilt validator binary: build on a dedicated
+    # Linux builder (same CPU family/OS as the fleet), never on a voting
+    # node and never on your laptop.
+    install:
+      strategy: build          # build | prebuilt (v2.x legacy only)
+      builder: mn-builder      # must be a key in the top-level builders: map
+      source: agave            # agave | jito
+      agave_repo: https://github.com/anza-xyz/agave
+      geyser_repo: https://github.com/rpcpool/yellowstone-grpc
+      geyser_ref: v1.2.0       # ABI must match the agave version you build
+      artifact_cache: /var/cache/solfleet/artifacts
+    # network identity, used to render launch flags + join at provision time
+    network:
+      entrypoints: [entrypoint.mainnet-beta.solana.com:8001]
+      known_validators: [7Np41oeYqPefeNQEHSv1UDhYrehxin3NStELsSKCT4K2]
+      expected_genesis_hash: 5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d
+    nodes:
+      - name: mn-val-1
+        role: validator
+        host: 203.0.113.20
+        identity: REPLACE_WITH_IDENTITY_PUBKEY
+        rpc_url: http://203.0.113.20:8899
+        service:
+          geyser_lib: /usr/local/lib/libyellowstone_grpc_geyser.so
+          geyser_config: /etc/solana-validator/yellowstone-config.json
+          # the keypair the operator places; solfleet never creates it
+          identity_keypair: /etc/solana-validator/identity.json
+          run_user: sol
+        # provisioning only: declared disks (solfleet never auto-picks
+        # devices; `format: true` still needs --format-device to wipe)
+        disks:
+          - { device: /dev/nvme1n1, mount: /mnt/ledger,   fs: ext4, format: false, min_size_gb: 500 }
+          - { device: /dev/nvme2n1, mount: /mnt/accounts, fs: ext4, format: false, min_size_gb: 500 }
+        launch:
+          rpc_port: 8899
+          no_voting: false       # this one votes
+        # system: tuning has sane defaults (open_files, sysctl, governor);
+        # override only if needed.
+
+# Build hosts. NOT serving fleet members. Need lots of cores/RAM/disk
+# (agave from source wants ~16 vCPU / 32-64 GB / 150 GB free). Spin up on
+# demand, stop when idle. Never a voting node, never your laptop.
+builders:
+  mn-builder:
+    host: 203.0.113.30
+    ssh: { user: ubuntu, port: 22 }
+
+# Optional: Solana-aware DNS failover. Provider creds come from the
+# environment (CLOUDFLARE_API_TOKEN, or standard AWS creds for route53).
+dns:
+  provider: cloudflare         # cloudflare | route53
+  zone: example.com
+  pools:
+    - record: rpc.example.com
+      cluster: devnet
+      members: [dev-rpc-1, dev-rpc-2]
+      ttl: 60
+      eject_when:
+        slot_lag: 150          # eject if lag strictly greater than this
+        unhealthy: true        # eject if getHealth != ok / unreachable
+        delinquent: false      # (validators) eject if delinquent

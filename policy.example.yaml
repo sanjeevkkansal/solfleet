@@ -1,0 +1,19 @@
+# Optional. If absent, solfleet uses conservative defaults:
+# one restart at a time, any version allowed, no disk floor.
+# Copy to policy.yaml and tighten per cluster.
+defaults:
+  max_concurrent_restarts: 1
+  allowed_versions: ["*"]
+
+clusters:
+  devnet:
+    allowed_versions: ["*"]      # devnet: try anything
+  testnet:
+    allowed_versions: ["3.*", "4.*"]
+    min_disk_free_pct: 15
+  mainnet:
+    max_concurrent_restarts: 1        # never cycle more than one validator at once
+    allowed_versions: ["4.1.*"]       # pin to the release you have vetted
+    min_disk_free_pct: 20
+    require_leader_window_minutes: 10  # validators: wait for a 10-min leader gap
+                                       # before exiting (0 disables, e.g. RPC-only)

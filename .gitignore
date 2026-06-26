@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+dist/
+*.egg-info/
+.pytest_cache/
+fleet.yaml
+*.sqlite
+*.local.md
+.DS_Store
