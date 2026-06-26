@@ -215,17 +215,20 @@ Open work, highest-value first:
    `watch` loop cycle (probe -> decide -> act); its decision logic is
    unit-tested and it uses the now-proven driver. Route53 driver remains
    unit-tested only (no AWS zone to point at).
-2. **M4 ship work.** Done: CI (`.github/workflows/ci.yml`, suite across
-   Python 3.11-3.13), Apache-2.0 `LICENSE`, packaging verified (wheel +
-   sdist build/install clean and secret-clean; both console scripts run),
-   README polish (badges + real repo path). Remaining: demo recording
-   (Claude doing a fleet upgrade) and flip the repo public (re-scan for
-   secrets first, even though it is already clean).
+2. **M4 ship work.** Done: CI, Apache-2.0 `LICENSE`, README polish + Status
+   section + an Example-session block (real `status` / `plan-upgrade`
+   output), repo flipped **PUBLIC** (history squashed clean first), PyPI
+   metadata (classifiers/urls/keywords, `twine check` PASSED), a
+   trusted-publishing workflow (`.github/workflows/publish.yml`), and a
+   tagged GitHub release **v0.1.0**. Remaining to actually land on PyPI:
+   configure the PyPI Trusted Publisher (owner=sanjeevkkansal, repo=solfleet,
+   workflow=publish.yml, env=pypi) then re-run the publish workflow. Then:
+   list on MCP directories, optional demo screenshot/asciinema.
 3. **M6:** streamable-HTTP transport (Tailscale + bearer auth) for team use.
 
-Repo: `github.com/sanjeevkkansal/solfleet` (PRIVATE). Real `fleet.yaml`
-and `solfleet.sqlite` are gitignored; node2-specific live-test state is in
-`RESUME.local.md` (gitignored), useful only while node2 exists.
+Repo: `github.com/sanjeevkkansal/solfleet` (PUBLIC since 2026-06-26). Real
+`fleet.yaml` and `solfleet.sqlite` are gitignored; node2-specific live-test
+state is in `RESUME.local.md` (gitignored).
 
 ## Milestones
 
