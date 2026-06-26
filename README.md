@@ -181,6 +181,52 @@ MCP (Claude Code):
 claude mcp add solfleet -- solfleet-mcp
 ```
 
+## Example session
+
+Pointed at a small devnet fleet. With no flags, commands are read-only or
+dry-run.
+
+Fleet health is Solana-aware, not just an HTTP 200:
+
+```console
+$ solfleet status
+CLUSTER  NODE   ROLE  HEALTH  VERSION     SLOT LAG  VOTE
+devnet   rpc-1  rpc   ok      4.1.0-rc.1  0         -
+devnet   rpc-2  rpc   ok      4.1.0-rc.1  0         -
+```
+
+An upgrade is dry-run by default. It returns the ordered plan and the gate
+decision and changes nothing until you pass `--confirm`:
+
+```console
+$ solfleet plan-upgrade rpc-1 4.1.0
+{
+  "decision": {
+    "operation": "upgrade",
+    "cluster": "devnet",
+    "node": "rpc-1",
+    "mode": "dry-run",
+    "allowed": true,
+    "plan": [
+      "on builder 'build-1': build agave 4.1.0 from source",
+      "distribute artifact set to rpc-1; checksum-verify each (abort on mismatch)",
+      "stop solana-validator, swap, start",
+      "swap /usr/local/bin/agave-validator + geyser .so + version marker atomically",
+      "wait until healthy + caught up to https://api.devnet.solana.com",
+      "verify reported version == 4.1.0; record before/after"
+    ],
+    "reasons": [
+      "dry-run: preflight checks pass; pass confirm=true to execute"
+    ]
+  },
+  "target_version": "4.1.0"
+}
+```
+
+Over MCP, the same operations are tools (`fleet_status`, `plan_node_upgrade`,
+`upgrade`, ...). Claude gets that same plan back and has to pass `confirm=true`
+to execute, so an agent cannot mutate a node by accident.
+
 ## Tools
 
 Read-only: `fleet_status`, `node_detail`, `version_drift`, `vote_status`,
