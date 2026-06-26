@@ -124,6 +124,32 @@ sequenceDiagram
 - **Safe failover.** The watch loop pulls lagging/unhealthy nodes out of
   DNS and restores them on recovery, and refuses to ever empty a pool.
 
+## Status
+
+v1. Built and unit-tested (91 tests, CI on Python 3.11-3.13). Most paths are
+also proven live against a disposable devnet node and a real Cloudflare zone.
+
+Proven live:
+
+- read path: `status`, `validate`, `vote-status`, `inspect`
+- `restart` (RPC via systemctl; validator via leader-aware safe-exit)
+- in-place `upgrade` end to end (build agave from source on a builder,
+  distribute, sha256-verify on the target, atomic swap, catch-up) for both
+  RPC and voting-validator nodes
+- `bootstrap-builder` (toolchain + deps on a bare builder)
+- `provision` a voting validator from bare disks (format NVMe, install,
+  render the voting unit, start, catch up, vote)
+- DNS driver plus `dns status` / `eject` / `restore` and last-member
+  protection, against a live Cloudflare zone
+
+Unit-tested but not yet run live:
+
+- the autonomous `watch` loop (probe -> decide -> act); its decision logic is
+  unit-tested and it reuses the now-proven Cloudflare driver
+- the Route53 driver (no AWS zone to point at yet)
+
+Not built yet: HTTP transport (MCP is stdio-only today). See PLAN.md (M6).
+
 ## Install
 
 ```sh
