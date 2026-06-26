@@ -261,3 +261,9 @@ bounded by the same audit log and the never-empty-a-pool rule.
 uv venv && uv pip install -e '.[dev]'
 uv run pytest
 ```
+
+## MCP registry
+
+Published to the [MCP Registry](https://registry.modelcontextprotocol.io).
+
+mcp-name: io.github.sanjeevkkansal/solfleet
